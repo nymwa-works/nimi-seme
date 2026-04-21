@@ -2,18 +2,21 @@ import type { Index } from './types'
 
 /**
  * 入力文字列を検索用の接頭辞に正規化する。
- * 先頭の空白区切りトークンのみを採用し、トキポナの固有名詞の表記規則
- * (先頭のみ大文字、残りは小文字) に揃える。
  *
  * @param input - ユーザーが入力した生の文字列。
  * @returns 正規化された接頭辞。空入力なら空文字列。
  */
 export const normalizePrefix = (input: string): string => {
-  const firstToken = input.trim().split(/\s+/)[0] ?? ''
-  if (!firstToken) {
+  const leftTrimmed = input.replace(/^\s+/, '')
+  if (!leftTrimmed) {
     return ''
   }
-  return firstToken[0].toUpperCase() + firstToken.slice(1).toLowerCase()
+  const hasTrailingSpace = /\s$/.test(leftTrimmed)
+  const tokens = leftTrimmed.trim().split(/\s+/)
+  const normalized = tokens
+    .map((t) => t[0].toUpperCase() + t.slice(1).toLowerCase())
+    .join(' ')
+  return hasTrailingSpace ? normalized + ' ' : normalized
 }
 
 /**
