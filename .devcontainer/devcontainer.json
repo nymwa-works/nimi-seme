@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  // --- Dev Container for Nimi Seme Project ---
+  "name": "Nimi Seme Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24-trixie",
+  // --- 開発コンテナに含める機能 ---
+  "features": {
+    // gh コマンド
+    "ghcr.io/devcontainers/features/github-cli": {},
+    // task コマンド
+    "ghcr.io/devcontainers-extra/features/go-task": {},
+    // common-utils: 開発に必要なツール(git, curl, zsh, ...)をインストール
+    "ghcr.io/devcontainers/features/common-utils": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true
+    }
+  },
+  // --- ポートフォワーディング ---
+  "forwardPorts": [3000, 3118, 5173, 8000, 11434],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite Server",
+      "hostIP": "0.0.0.0",
+      "onAutoForward": "notify" // 検出時に通知
+    }
+  },
+  // --- VS Codeのカスタマイズ ---
+  "customizations": {
+    "vscode": {
+      // VS Code 拡張機能
+      "extensions": [
+        // PDF Viewer
+        "tomoki1207.pdf",
+        // Error Lens
+        "usernamehw.errorlens",
+        // Shell Linter / Formatter
+        "foxundermoon.shell-format",
+        // HTML Language / Linter
+        "yusukehirao.vscode-markuplint",
+        // Markdown Linter / Formatter
+        "davidanson.vscode-markdownlint",
+        // TOML Language / Linter / Formatter
+        "tamasfe.even-better-toml",
+        // YAML Language
+        "redhat.vscode-yaml",
+        // Linter / Formatter
+        "esbenp.prettier-vscode",
+        // AI Assistants
+        "github.copilot",
+        "github.copilot-chat",
+        "anthropic.claude-code",
+        "google.geminicodeassist",
+        // Docker Support
+        "ms-azuretools.vscode-docker",
+        // Git Version Control
+        "eamodio.gitlens",
+        // Coding Utilities
+        "streetsidesoftware.code-spell-checker",
+        "ionutvmi.path-autocomplete",
+        // Languages & Frameworks Support
+        "bradlc.vscode-tailwindcss",
+        // UI / Visual Enhancements
+        "oderwat.indent-rainbow",
+        "mechatroner.rainbow-csv",
+        "vscode-icons-team.vscode-icons"
+      ]
+    }
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm install *)",
+      "Bash(npm ci)",
+      "Bash(npm run *)",
+      "Bash(npm test)",
+      "Bash(npm test *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(git add *)",
+      "Bash(git commit)",
+      "Bash(git commit -m *)",
+      "Bash(git commit -am *)",
+      "Bash(git push)",
+      "Bash(git push origin)",
+      "Bash(git push origin *)",
+      "Bash(git push -u *)",
+      "Bash(git push --set-upstream *)",
+      "Bash(git fetch)",
+      "Bash(git fetch *)",
+      "Bash(git pull --ff-only)",
+      "Bash(git pull --ff-only *)",
+      "Bash(git stash)",
+      "Bash(git stash push)",
+      "Bash(git stash push -m *)",
+      "Bash(git stash pop)",
+      "Bash(git stash apply)",
+      "Bash(git restore --staged *)",
+      "Bash(gh pr create)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr edit *)",
+      "Bash(gh pr comment *)"
+    ],
+    "deny": [
+      "Bash(git push --force)",
+      "Bash(git push --force *)",
+      "Bash(git push --force-with-lease)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git push -f)",
+      "Bash(git push -f *)",
+      "Bash(git push * --force)",
+      "Bash(git push * --force *)",
+      "Bash(git push * -f)",
+      "Bash(git push * -f *)",
+      "Bash(git reset --hard)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -f *)",
+      "Bash(git clean -fd *)",
+      "Bash(git branch -D *)",
+      "Bash(git checkout --)",
+      "Bash(git checkout -- *)",
+      "Edit(/workspaces/nimi-seme/package.json)",
+      "Write(/workspaces/nimi-seme/package.json)",
+      "Edit(/workspaces/nimi-seme/package-lock.json)",
+      "Write(/workspaces/nimi-seme/package-lock.json)",
+      "Edit(/workspaces/nimi-seme/tsconfig.json)",
+      "Write(/workspaces/nimi-seme/tsconfig.json)",
+      "Edit(/workspaces/nimi-seme/eslint.config.js)",
+      "Write(/workspaces/nimi-seme/eslint.config.js)",
+      "Edit(/home/vscode/.claude/settings.json)",
+      "Edit(/home/vscode/.claude/settings.local.json)",
+      "Edit(/home/vscode/.claude/CLAUDE.md)",
+      "Write(/home/vscode/.claude/settings.json)",
+      "Write(/home/vscode/.claude/settings.local.json)",
+      "Write(/home/vscode/.claude/CLAUDE.md)",
+      "Edit(/home/vscode/.zshrc)",
+      "Edit(/home/vscode/.bashrc)",
+      "Edit(/home/vscode/.gitconfig)",
+      "Edit(/home/vscode/.ssh/*)",
+      "Write(/home/vscode/.zshrc)",
+      "Write(/home/vscode/.bashrc)",
+      "Write(/home/vscode/.gitconfig)",
+      "Write(/home/vscode/.ssh/*)",
+      "Edit(/etc/*)",
+      "Write(/etc/*)",
+      "Edit(/usr/*)",
+      "Write(/usr/*)",
+      "Edit(/root/*)",
+      "Write(/root/*)",
+      "Edit(/var/*)",
+      "Write(/var/*)",
+      "Edit(/opt/*)",
+      "Write(/opt/*)",
+      "Edit(/boot/*)",
+      "Write(/boot/*)",
+      "Edit(/bin/*)",
+      "Write(/bin/*)",
+      "Edit(/sbin/*)",
+      "Write(/sbin/*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/scripts/notify_slack.sh\" \"[セッション開始] nimi-seme\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/scripts/notify_slack.sh\" \"[セッション終了] nimi-seme\""
+          }
+        ]
+      }
+    ]
+  }
+}

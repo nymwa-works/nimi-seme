@@ -1,0 +1,4 @@
+dist
+node_modules
+public/proper_nouns.json.gz
+package-lock.json
