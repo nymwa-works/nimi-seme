@@ -9,6 +9,8 @@
     "ghcr.io/devcontainers/features/github-cli": {},
     // task コマンド
     "ghcr.io/devcontainers-extra/features/go-task": {},
+    // git-lfs コマンド
+    "ghcr.io/devcontainers/features/git-lfs": {},
     // common-utils: 開発に必要なツール(git, curl, zsh, ...)をインストール
     "ghcr.io/devcontainers/features/common-utils": {
       "installZsh": true,
