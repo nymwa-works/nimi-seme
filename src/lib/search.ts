@@ -45,16 +45,19 @@ export const searchByPrefix = (
  * @returns `keys[i] >= target` を満たす最小の `i` (該当無しなら `keys.length`)。
  */
 const lowerBound = (keys: string[], target: string): number => {
-  const search = (left: number, right: number): number => {
-    // 探索範囲が1要素の場合は、確定。
-    if (left >= right) {
-      return left
-    }
+  let left = 0
+  let right = keys.length
+  // left と right が等しくなるまで、区間を半分に狭めていく。
+  while (left < right) {
     // 中間の位置を計算する。（切り捨て）
     const mid = (left + right) >>> 1
     // 中間の要素が target より小さい場合は、それより右側を探索。
     // そうでない場合は、反対側を探索。
-    return keys[mid] < target ? search(mid + 1, right) : search(left, mid)
+    if (keys[mid] < target) {
+      left = mid + 1
+    } else {
+      right = mid
+    }
   }
-  return search(0, keys.length)
+  return left
 }
