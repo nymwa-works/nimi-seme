@@ -1,15 +1,11 @@
 import type { Index, Row } from './types'
 
-/** {@link loadIndex} の結果を使い回すためのモジュールスコープキャッシュ。 */
+/** {@link loadIndex} の結果を使い回すためのモジュールスコープでのキャッシュ。 */
 let index: Promise<Index> | null = null
 
 /**
  * 索引ファイルをダウンロードして {@link Index} としてパースする。
- *
- * @remarks
- * 初回呼び出し時にのみ fetch を発行し、以降は同一 Promise を返す。
- * React の `use()` に直接渡してもレンダーごとに参照が変わらないため、
- * Suspense が再度サスペンドすることなく resolve 済みの値を取り出せる。
+ * 最初の呼び出しのみ fetch を行い、2回目以降はキャッシュされた Promise を返す。
  *
  * @returns パース済みの索引を解決する Promise。
  * @throws HTTP レスポンスが `ok` でない場合、Promise は reject される。
@@ -18,17 +14,7 @@ export const loadIndex = (): Promise<Index> =>
   (index ??= fetchIndex('proper_nouns.json.gz'))
 
 /**
- * 指定パスの gzip 圧縮 JSON を fetch し {@link Index} に型付けして返す。
- *
- * @remarks
- * 本番の GitHub Pages は `.gz` ファイルに `Content-Encoding: gzip` を付けず
- * 生のバイト列として返すため、`DecompressionStream('gzip')` で自前展開する。
- * Vite dev server (sirv) は逆に `Content-Encoding: gzip` を自動付与し、
- * ブラウザが HTTP レイヤで透過展開してしまう。
- * 両環境に対応するため、レスポンスボディ先頭が gzip の magic number
- * (0x1f 0x8b) かどうかで判定し、必要なときだけ展開する。
- * `DecompressionStream('gzip')` は主要ブラウザ
- * (Chrome 80+, Safari 16.4+, Firefox 113+) で利用可能。
+ * gzip 圧縮された JSON を fetch し {@link Index} に型付けして返す。
  *
  * @param path - `document.baseURI` を基準とした相対 URL。
  * @returns パース済みの索引。
@@ -43,20 +29,29 @@ const fetchIndex = async (path: string): Promise<Index> => {
     )
   }
   const buffer = await res.arrayBuffer()
-  // ブラウザが `Content-Encoding: gzip` を解釈して gzip を自動展開することがある。
-  // そのため、入力が json 文字列か、gzip のバイト列かを判定して処理する。
-  const text = isGzipMagic(buffer)
-    ? await gzipToString(buffer)
-    : new TextDecoder().decode(buffer)
+  const text = await decodeGzipBuffer(buffer)
   const rows = JSON.parse(text) as Row[]
   return buildIndex(rows)
 }
 
 /**
+ * gzip 形式が想定されるバイト列を UTF-8 文字列に変換する。
+ * ブラウザが gzip を自動展開している場合は、単純に文字列としてデコードする。
+ */
+const decodeGzipBuffer = async (buffer: ArrayBuffer): Promise<string> =>
+  isGzipMagic(buffer)
+    ? await gzipToString(buffer)
+    : new TextDecoder().decode(buffer)
+
+/**
  * バイト列が gzip の magic number (0x1f 0x8b) で始まるかを判定する。
  */
 const isGzipMagic = (buffer: ArrayBuffer): boolean => {
-  if (buffer.byteLength < 2) return false
+  if (buffer.byteLength < 2) {
+    return false
+  }
+  // Unit8Array は ArrayBuffer の一部を読み取るためのビュー。
+  // そのため、余計な部分までコピーせず、効率よく先頭 2 バイトを読み取れる。
   const head = new Uint8Array(buffer, 0, 2)
   return head[0] === 0x1f && head[1] === 0x8b
 }
@@ -64,12 +59,14 @@ const isGzipMagic = (buffer: ArrayBuffer): boolean => {
 /**
  * gzip バイト列を `DecompressionStream` で展開して UTF-8 文字列に変換する。
  */
-const gzipToString = async (buffer: ArrayBuffer): Promise<string> => {
-  const stream = new Blob([buffer])
-    .stream()
-    .pipeThrough(new DecompressionStream('gzip'))
-  return await new Response(stream).text()
-}
+const gzipToString = async (buffer: ArrayBuffer): Promise<string> =>
+  await new Response(gzipToStream(buffer)).text()
+
+/**
+ * gzip バイト列を `DecompressionStream` で展開するためのストリームに変換する。
+ */
+const gzipToStream = (buffer: ArrayBuffer): ReadableStream<Uint8Array> =>
+  new Blob([buffer]).stream().pipeThrough(new DecompressionStream('gzip'))
 
 /**
  * json データをもとに {@link Index} を構築する。
