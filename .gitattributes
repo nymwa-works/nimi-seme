@@ -1,1 +1,1 @@
-public/proper_nouns.json.gz filter=lfs diff=lfs merge=lfs -text
+public/proper_nouns_for_nimi_seme.tsv.gz filter=lfs diff=lfs merge=lfs -text

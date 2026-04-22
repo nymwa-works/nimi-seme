@@ -1,4 +1,4 @@
 dist
 node_modules
-public/proper_nouns.json.gz
+public/proper_nouns_for_nimi_seme.tsv.gz
 package-lock.json
