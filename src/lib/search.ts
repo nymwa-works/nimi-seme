@@ -1,26 +1,7 @@
 import type { Index } from './types'
 
 /**
- * 入力文字列を検索用の接頭辞に正規化する。
- *
- * @param input - ユーザーが入力した生の文字列。
- * @returns 正規化された接頭辞。空入力なら空文字列。
- */
-export const normalizePrefix = (input: string): string => {
-  const leftTrimmed = input.replace(/^\s+/, '')
-  if (!leftTrimmed) {
-    return ''
-  }
-  const hasTrailingSpace = /\s$/.test(leftTrimmed)
-  const tokens = leftTrimmed.trim().split(/\s+/)
-  const normalized = tokens
-    .map((t) => t[0].toUpperCase() + t.slice(1).toLowerCase())
-    .join(' ')
-  return hasTrailingSpace ? normalized + ' ' : normalized
-}
-
-/**
- * 接頭辞検索を行う。
+ * 接頭辞をクエリとしてインデックス列の検索を行う。
  * 開始位置を二分探索で求め、終了位置かlimitに達するまで走査する。
  *
  * @param index - 索引。

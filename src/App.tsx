@@ -3,7 +3,7 @@ import { AppHeader } from './components/AppHeader'
 import { ResultsContainer } from './components/ResultsContainer'
 import { SearchBar } from './components/SearchBar'
 import { loadIndex } from './lib/loadIndex'
-import { normalizePrefix } from './lib/search'
+import { normalizePrefix } from './lib/normalize'
 
 const PLACEHOLDER_LOADING = '≡＞ω＜≡'
 const PLACEHOLDER_READY = '≡╹ω╹≡'
