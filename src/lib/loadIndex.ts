@@ -28,63 +28,97 @@ const fetchIndex = async (path: string): Promise<Index> => {
       `Failed to fetch ${url.toString()}: ${res.status.toString()}`,
     )
   }
-  const buffer = await res.arrayBuffer()
-  const text = await decodeGzipBuffer(buffer)
-  const rows = JSON.parse(text) as Row[]
-  return buildIndex(rows)
-}
-
-/**
- * gzip 形式が想定されるバイト列を UTF-8 文字列に変換する。
- * ブラウザが gzip を自動展開している場合は、単純に文字列としてデコードする。
- */
-const decodeGzipBuffer = async (buffer: ArrayBuffer): Promise<string> =>
-  isGzipMagic(buffer)
-    ? await gzipToString(buffer)
-    : new TextDecoder().decode(buffer)
-
-/**
- * バイト列が gzip の magic number (0x1f 0x8b) で始まるかを判定する。
- */
-const isGzipMagic = (buffer: ArrayBuffer): boolean => {
-  if (buffer.byteLength < 2) {
-    return false
+  if (!res.body) {
+    throw new Error(`Response body is empty: ${url.toString()}`)
   }
-  // Unit8Array は ArrayBuffer の一部を読み取るためのビュー。
-  // そのため、余計な部分までコピーせず、効率よく先頭 2 バイトを読み取れる。
-  const head = new Uint8Array(buffer, 0, 2)
-  return head[0] === 0x1f && head[1] === 0x8b
+  const text = await decodeBodyToText(res.body)
+  return parseAndBuild(text)
 }
 
 /**
- * gzip バイト列を `DecompressionStream` で展開して UTF-8 文字列に変換する。
- */
-const gzipToString = async (buffer: ArrayBuffer): Promise<string> =>
-  await new Response(gzipToStream(buffer)).text()
-
-/**
- * gzip バイト列を `DecompressionStream` で展開するためのストリームに変換する。
- */
-const gzipToStream = (buffer: ArrayBuffer): ReadableStream<Uint8Array> =>
-  new Blob([buffer]).stream().pipeThrough(new DecompressionStream('gzip'))
-
-/**
- * json データをもとに {@link Index} を構築する。
+ * レスポンスボディの先頭 2 バイトから gzip かどうか判定し、
+ * 必要なら {@link DecompressionStream} で展開しつつテキスト化する。
  *
- * @param rows - `[tp, en, heads]` の 3 要素タプル配列。
- * @returns 検索用索引。
+ * ブラウザが `Content-Encoding: gzip` を解釈して自動展開するケース
+ * (Vite dev server) と、生 gzip が返るケース (GitHub Pages) の両対応。
  */
-const buildIndex = (rows: Row[]): Index => {
-  const keys: string[] = []
-  const offsets: number[] = []
-  for (let i = 0; i < rows.length; i++) {
-    // キーが変わったタイミングで、キーとその開始位置を記録する。
-    if (i === 0 || rows[i][0] !== rows[i - 1][0]) {
-      keys.push(rows[i][0])
-      offsets.push(i)
-    }
+const decodeBodyToText = async (
+  body: ReadableStream<Uint8Array>,
+): Promise<string> => {
+  const reader = body.getReader()
+  const first = await reader.read()
+  if (first.done) {
+    return ''
   }
-  // 最後のキーの次の位置を記録する。最後のキーの終了位置を探すために使用する。
-  offsets.push(rows.length)
-  return { keys, offsets, rows }
+  const head = first.value
+  const gzip = head.length >= 2 && head[0] === 0x1f && head[1] === 0x8b
+  // 先頭チャンクを読み切ってしまったため、先頭チャンク + 残りを繋ぎ直した
+  // ストリームを構築する。生成した時点から解凍を開始できる。
+  // Response を経由するのは DOM lib の ReadableStream/DecompressionStream の
+  // 型変位が噛み合わない (BufferSource vs Uint8Array) のを回避するため。
+  const rebuilt = new Response(
+    new ReadableStream({
+      start: (ctrl) => ctrl.enqueue(head),
+      pull: async (ctrl) => {
+        const { done, value } = await reader.read()
+        if (done) {
+          ctrl.close()
+        } else {
+          ctrl.enqueue(value)
+        }
+      },
+      cancel: (reason) => reader.cancel(reason),
+    }),
+  ).body
+  if (!rebuilt) {
+    return ''
+  }
+  const stream = gzip
+    ? rebuilt.pipeThrough(new DecompressionStream('gzip'))
+    : rebuilt
+  return await new Response(stream).text()
+}
+
+/**
+ * TSV を走査し、{@link Index} を構築する。
+ */
+const parseAndBuild = (text: string): Index => {
+  const keys: string[] = []
+  const values: string[] = []
+  const heads: string[] = []
+  const offsets: number[] = []
+  const len = text.length
+  let prevTp: string | undefined
+  let lineStart = 0
+  let rowIndex = 0
+
+  // while ループで、O(n) でテキストを走査する。
+  // javascript の indexOf と slice は速い。
+  while (lineStart < len) {
+    let lineEnd = text.indexOf('\n', lineStart)
+    if (lineEnd === -1) {
+      lineEnd = len
+    }
+    if (lineEnd > lineStart) {
+      const tab1 = text.indexOf('\t', lineStart)
+      const tab2 = text.indexOf('\t', tab1 + 1)
+      const tp = text.slice(lineStart, tab1)
+      const value = text.slice(tab1 + 1, tab2)
+      const head = text.slice(tab2 + 1, lineEnd)
+
+      // トキポナのキーが変わった時にオフセットを記録する。
+      if (tp !== prevTp) {
+        keys.push(tp)
+        offsets.push(rowIndex)
+        prevTp = tp
+      }
+      values.push(value)
+      heads.push(head)
+      rowIndex++
+    }
+    lineStart = lineEnd + 1
+  }
+  // 最後のキーの次の位置を最後のオフセットとして記録する。
+  offsets.push(rowIndex)
+  return { keys, values, heads, offsets: Int32Array.from(offsets) }
 }
