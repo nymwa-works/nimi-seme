@@ -5,18 +5,12 @@
   --font-mono: ui-monospace, Consolas, monospace;
 }
 
-:root {
+body {
+  background-color: var(--color-stone-200);
+  color: var(--color-stone-600);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
   color-scheme: light;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: 0.18px;
-}
-
-body {
-  @apply bg-stone-200 text-stone-600;
-  font-family: var(--font-sans);
-  font-size: 18px;
-  line-height: 1.45;
 }
