@@ -1,14 +1,8 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-text: #595755;
-  --color-text-h: #141311;
-  --color-bg: #e8e6e2;
-  --color-border: #bcbab4;
-  --color-accent: #2d2b28;
   --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, Consolas, monospace;
-  --text-tp: 22px;
 }
 
 :root {
@@ -21,8 +15,7 @@
 }
 
 body {
-  background: var(--color-bg);
-  color: var(--color-text);
+  @apply bg-stone-200 text-stone-600;
   font-family: var(--font-sans);
   font-size: 18px;
   line-height: 1.45;

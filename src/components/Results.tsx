@@ -1,4 +1,5 @@
-import type { Index, Row } from '../lib/types'
+import type { Index } from '../lib/types'
+import { ResultCard } from './ResultCard'
 
 /**
  * {@link Results} のプロパティ。
@@ -13,11 +14,6 @@ type ResultsProps = {
   matchedIndices: number[]
 }
 
-type ResultCardProps = {
-  tp: string
-  rows: Row[]
-}
-
 /**
  * 検索結果を一覧表示する。
  *
@@ -30,47 +26,13 @@ export const Results = ({ index, prefix, matchedIndices }: ResultsProps) => {
     return null
   }
 
-  // 結果を展開して描画する。
+  // 結果を展開して描画する。index と rowIndex は参照/値が安定しているため、
+  // React.memo で包んだ ResultCard は一致するキーのカードを再レンダリングせずに済む。
   return (
     <section className="flex flex-col gap-4">
       {matchedIndices.map((i) => (
-        <ResultCard
-          key={i}
-          tp={index.keys[i]}
-          rows={index.rows.slice(index.offsets[i], index.offsets[i + 1])}
-        />
+        <ResultCard key={i} index={index} rowIndex={i} />
       ))}
     </section>
   )
 }
-
-/**
- * 同じトキポナ表記の行を表示するカード。
- * 各行は `en (head)` 形式で 1 行ずつ並べる。
- *
- * @param props.tp - トキポナ表記。
- * @param props.rows - 当該 `tp` に属する全行。
- * @returns カードを表す `<article>` 要素。
- */
-const ResultCard = ({ tp, rows }: ResultCardProps) => (
-  <article>
-    <h2 className="text-accent text-tp font-mono font-semibold">{tp}</h2>
-    <ul className="text-text-h mt-1 flex flex-col gap-0.5 pl-6">
-      {rows.map((row, i) => (
-        <li key={i} className="text-base">
-          {formatRow(row)}
-        </li>
-      ))}
-    </ul>
-  </article>
-)
-
-/**
- * 行データを 1 行のテキストに整形する。
- * head がある場合は、en (head1, head2, ...) 形式で返す。ない場合は en のみを返す。
- *
- * @param row - 整形対象の行。
- * @returns 表示用文字列。
- */
-const formatRow = ([, en, head]: Row): string =>
-  head.length > 0 ? `${en} (${head.join(', ')})` : en

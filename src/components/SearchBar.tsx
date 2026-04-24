@@ -23,7 +23,7 @@ export const SearchBar = ({ value, onChange, placeholder }: Props) => (
   <section className="flex">
     <input
       type="text"
-      className="border-border bg-bg text-text-h focus:border-accent/50 flex-1 rounded-lg border-2 p-3 font-mono text-lg transition-colors outline-none"
+      className="flex-1 rounded-lg border-2 border-stone-400 bg-stone-200 p-3 font-mono text-lg text-stone-900 transition-colors outline-none focus:border-stone-800/50"
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}

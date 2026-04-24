@@ -21,7 +21,7 @@ const App = () => {
   }, [])
 
   return (
-    <div className="border-border mx-auto flex min-h-svh max-w-180 flex-col border-x">
+    <div className="mx-auto flex min-h-svh max-w-180 flex-col border-x border-stone-400">
       <div className="flex grow flex-col gap-6 px-6 pt-8 pb-16">
         <AppHeader />
         <SearchBar
