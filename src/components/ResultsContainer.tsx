@@ -5,7 +5,7 @@ import { Results } from './Results'
 
 const RESULT_LIMIT = 200
 
-/*
+/**
  * 検索結果を取得して {@link Results} に渡すコンテナ。
  */
 export const ResultsContainer = ({ prefix }: { prefix: string }) => {
@@ -14,7 +14,5 @@ export const ResultsContainer = ({ prefix }: { prefix: string }) => {
     () => searchByPrefix(index, prefix, RESULT_LIMIT),
     [index, prefix],
   )
-  return (
-    <Results index={index} prefix={prefix} matchedIndices={matchedIndices} />
-  )
+  return <Results index={index} matchedIndices={matchedIndices} />
 }
