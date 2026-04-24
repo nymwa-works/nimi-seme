@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { AppHeader } from './components/AppHeader'
 import { ResultsContainer } from './components/ResultsContainer'
 import { SearchBar } from './components/SearchBar'
@@ -12,6 +12,9 @@ const App = () => {
   const [query, setQuery] = useState('')
   const prefix = useMemo(() => normalizePrefix(query), [query])
   const [ready, setReady] = useState(false)
+  // 検索結果の更新は優先度を下げる。
+  // 入力のレスポンスが良くなり、ユーザー体験が向上する。
+  const deferredPrefix = useDeferredValue(prefix)
 
   useEffect(() => {
     loadIndex().finally(() => setReady(true))
@@ -27,7 +30,7 @@ const App = () => {
           placeholder={ready ? PLACEHOLDER_READY : PLACEHOLDER_LOADING}
         />
         <Suspense fallback={null}>
-          <ResultsContainer prefix={prefix} />
+          <ResultsContainer prefix={deferredPrefix} />
         </Suspense>
       </div>
     </div>
